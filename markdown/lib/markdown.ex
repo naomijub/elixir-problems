@@ -1,4 +1,5 @@
 defmodule Markdown do
+  @moduledoc false
   @doc """
     Parses a given string with Markdown syntax and returns the associated HTML for that string.
 
@@ -12,19 +13,27 @@ defmodule Markdown do
   """
   @spec parse(String.t()) :: String.t()
   def parse(m) do
-    patch(Enum.join(Enum.map(String.split(m, "\n"), fn t -> process(t) end)))
+    m
+    |> String.split("\n")
+    |> Enum.map(fn t -> process(t) end)
+    |> Enum.join()
+    |> patch
+  end
+
+  defp process(t) when binary_part(t, 0, 1) == "#" do
+    t
+    |> parse_header_md_level
+    |> enclose_with_header_tag
+  end
+
+  defp process(t) when binary_part(t, 0, 1) == "*" do
+    parse_list_md_level(t)
   end
 
   defp process(t) do
-    if String.starts_with?(t, "#") || String.starts_with?(t, "*") do
-      if String.starts_with?(t, "#") do
-        enclose_with_header_tag(parse_header_md_level(t))
-      else
-        parse_list_md_level(t)
-      end
-    else
-      enclose_with_paragraph_tag(String.split(t))
-    end
+    t
+    |> String.split()
+    |> enclose_with_paragraph_tag
   end
 
   defp parse_header_md_level(hwt) do
@@ -33,7 +42,11 @@ defmodule Markdown do
   end
 
   defp parse_list_md_level(l) do
-    t = String.split(String.trim_leading(l, "* "))
+    t =
+      l
+      |> String.trim_leading("* ")
+      |> String.split()
+
     "<li>" <> join_words_with_tags(t) <> "</li>"
   end
 
@@ -42,18 +55,22 @@ defmodule Markdown do
   end
 
   defp enclose_with_paragraph_tag(t) do
-    "<p>#{join_words_with_tags(t)}</p>"
+    "<p>" <> join_words_with_tags(t) <> "</p>"
   end
 
   defp join_words_with_tags(t) do
-    Enum.join(Enum.map(t, fn w -> replace_md_with_tag(w) end), " ")
+    t
+    |> Enum.map(fn w -> replace_md_with_tag(w) end)
+    |> Enum.join(" ")
   end
 
   defp replace_md_with_tag(w) do
-    replace_suffix_md(replace_prefix_md(w))
+    w
+    |> replace_md(:prefix)
+    |> replace_md(:suffix)
   end
 
-  defp replace_prefix_md(w) do
+  defp replace_md(w, :prefix) do
     cond do
       w =~ ~r/^#{"__"}{1}/ -> String.replace(w, ~r/^#{"__"}{1}/, "<strong>", global: false)
       w =~ ~r/^[#{"_"}{1}][^#{"_"}+]/ -> String.replace(w, ~r/_/, "<em>", global: false)
@@ -61,7 +78,7 @@ defmodule Markdown do
     end
   end
 
-  defp replace_suffix_md(w) do
+  defp replace_md(w, :suffix) do
     cond do
       w =~ ~r/#{"__"}{1}$/ -> String.replace(w, ~r/#{"__"}{1}$/, "</strong>")
       w =~ ~r/[^#{"_"}{1}]/ -> String.replace(w, ~r/_/, "</em>")
@@ -70,10 +87,8 @@ defmodule Markdown do
   end
 
   defp patch(l) do
-    String.replace_suffix(
-      String.replace(l, "<li>", "<ul>" <> "<li>", global: false),
-      "</li>",
-      "</li>" <> "</ul>"
-    )
+    l
+    |> String.replace("<li>", "<ul><li>", global: false)
+    |> String.replace_suffix("</li>", "</li></ul>")
   end
 end

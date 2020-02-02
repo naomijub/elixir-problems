@@ -1,7 +1,6 @@
 defmodule MarkdownTest do
   use ExUnit.Case
 
-  # @tag :pending
   test "parses normal text as a paragraph" do
     input = "This will be a paragraph"
     expected = "<p>This will be a paragraph</p>"
