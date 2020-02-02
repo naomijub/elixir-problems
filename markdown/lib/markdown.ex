@@ -38,7 +38,7 @@ defmodule Markdown do
 
   defp parse_header_md_level(hwt) do
     [h | t] = String.split(hwt)
-    {to_string(String.length(h)), Enum.join(t, " ")}
+    {"#{String.length(h)}", Enum.join(t, " ")}
   end
 
   defp parse_list_md_level(l) do
@@ -71,19 +71,15 @@ defmodule Markdown do
   end
 
   defp replace_md(w, :prefix) do
-    cond do
-      w =~ ~r/^#{"__"}{1}/ -> String.replace(w, ~r/^#{"__"}{1}/, "<strong>", global: false)
-      w =~ ~r/^[#{"_"}{1}][^#{"_"}+]/ -> String.replace(w, ~r/_/, "<em>", global: false)
-      true -> w
-    end
+    w
+    |> String.replace_prefix("__", "<strong>")
+    |> String.replace_prefix("_", "<em>")
   end
 
   defp replace_md(w, :suffix) do
-    cond do
-      w =~ ~r/#{"__"}{1}$/ -> String.replace(w, ~r/#{"__"}{1}$/, "</strong>")
-      w =~ ~r/[^#{"_"}{1}]/ -> String.replace(w, ~r/_/, "</em>")
-      true -> w
-    end
+    w
+    |> String.replace_suffix("__", "</strong>")
+    |> String.replace_suffix("_", "</em>")
   end
 
   defp patch(l) do
