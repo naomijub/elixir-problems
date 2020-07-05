@@ -52,8 +52,7 @@ defmodule RomanNumerals do
   def numeral(number) do
     number
     |> Integer.to_string
-    |> String.split("")
-    |> Enum.reject(fn n -> n == "" end)
+    |> String.graphemes
     |> Enum.reverse
     |> Enum.with_index
     |> Enum.map(&(val(&1)))
