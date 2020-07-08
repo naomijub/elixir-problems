@@ -4,17 +4,18 @@ defmodule Scrabble do
   """
   @letters_map %{
     ""           => 0,
-    "aeioulnrstAEIOULNRST" => 1,
-    "dgDG"         => 2,
-    "bcmpBCMP"       => 3,
-    "fhvwyFHVWY"      => 4,
-    "kK"          => 5,
-    "jxJX"         => 8,
-    "qzQZ"         => 10
+    "aeioulnrst" => 1,
+    "dg"         => 2,
+    "bcmp"       => 3,
+    "fhvwy"      => 4,
+    "k"          => 5,
+    "jx"         => 8,
+    "qz"         => 10
   }
   @spec score(String.t()) :: non_neg_integer
   def score(word) do
     word
+    |> String.downcase()
     |> String.graphemes()
     |> Enum.map(fn g ->  letter_value(g) end)
     |> Enum.sum()
