@@ -9,7 +9,7 @@ defmodule StringSeries do
 
   end
   def slices(s, size) do
-    slice = s |> String.split("") |> Enum.reject(fn e -> e == "" end)
+    slice = String.graphemes(s)
     windows(slice, size, [])
   end
 
@@ -17,7 +17,7 @@ defmodule StringSeries do
   def windows([], size, window) do
     window
     |> Enum.reject(fn e -> Enum.count(e) < size end)
-    |> Enum.map(&Enum.join/1)
+    |> Enum.map(&to_string/1)
     |> Enum.sort()
   end
 
